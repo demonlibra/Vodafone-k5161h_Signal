@@ -83,7 +83,7 @@ def add_plot(position, data, y_min, y_max, title, units, level1, level2, level3)
 				f'\nband: {band[i]}'
 				f'\nulfrequency: {ulfrequency[i]} кГц'
 				f'\ndlfrequency: {dlfrequency[i]} кГц')
-			plt.text(x_time[i], y_text_postion, text, horizontalalignment='left', verticalalignment=v_align)#   добавить на график номер базовой станции
+			plt.text(x_time[i], y_text_postion, cell[i], horizontalalignment='left', verticalalignment=v_align)#   добавить на график номер базовой станции
 
 # ----------------------------------------------------------------------
 

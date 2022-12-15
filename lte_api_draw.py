@@ -173,7 +173,12 @@ try:
 				print('Минимальное время', round(cycle_time, 2), 'больше заданного периода (period_refresh)', period_refresh)
 
 except KeyboardInterrupt:
+	print('\nЗавершено исполнение сценария')
+	exit()
+
+finally:
 	plt.ioff()
+	plt.clf()
 	plt.figure(figsize=(7*2, 3.5*2))
 	add_plot(1, rsrq, -21, 0, 'RSRQ - Качество принятых пилотных сигналов', 'dB', -10, -15, -20)
 	add_plot(2, rsrp, -120, -70, 'RSRP - Уровень принимаемого сигнала с Базовой Станции', 'dBm', -80, -90, -100)
@@ -182,7 +187,5 @@ except KeyboardInterrupt:
 	plt.subplots_adjust(left=0.05, right=0.99, top=0.95, bottom=0.05)
 	
 	plt.savefig(os.path.join(dir_result, plot_name), dpi=resolution)
-	print('\nЗавершено исполнение сценария')
-	exit()
-
+	
 #plt.show()
