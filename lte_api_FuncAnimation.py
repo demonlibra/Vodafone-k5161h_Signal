@@ -3,14 +3,15 @@
 
 # ------------------------- Импорт библиотек ---------------------------
 
-import requests
-import datetime
-import re
-import time
+import datetime as dt
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
-import xml.etree.ElementTree as ET
+import matplotlib.dates as mdates
 import os
+import re
+import requests
+import time
+import xml.etree.ElementTree as ET
 
 # ---------------------------- Параметры -------------------------------
 
@@ -19,11 +20,11 @@ FILE_XML = 'signal.xml'
 
 MAX_MESUAREMENTS = 200																	# Максимальное количество измерений на графиках
 PERIOD_REFRESH = 500																		# Период (милисекунд) получения данных. Указать 0 чтобы работать без задержек.
-PLOT_TITLE = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")		# Заголовок окна
+PLOT_TITLE = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")				# Заголовок окна
 
 DIR_RESULT = 'graphics'																	# Каталог для сохранения изображений
-PLOT_NAME = f'{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.png'	# Имя файла для сохранения изображения
-IMG_RESOLUTION = 150																			# Разрешение изображения (dpi)
+PLOT_NAME = f'{dt.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.png'		# Имя файла для сохранения изображения
+IMG_RESOLUTION = 150																		# Разрешение изображения (dpi)
 
 # ------------------------------ Функции -------------------------------
 
@@ -34,15 +35,23 @@ def get_value(marker):																	# Функция получения зн�
 	return value
 
 def add_plot(position, data, y_min, y_max, title, units, level1, level2, level3):# Функция добавления графика
-	plt.subplot(2, 2, position)
+	axes = plt.subplot(2, 2, position)
 	plt.cla()
+	
+	xfmt = mdates.DateFormatter('%M:%S')
+	axes.xaxis.set_major_formatter(xfmt)
+
+	locator = mdates.AutoDateLocator(minticks=5, maxticks=10)
+	#locator = mdates.SecondLocator(bysecond=[0,30])
+	axes.xaxis.set_major_locator(locator)
+	
 	plt.axhline(level1, color='yellow')
 	plt.axhline(level2, color='orange')
 	plt.axhline(level3, color='red')
 	plt.title(title + ', ' + units)
 
 	if x_time[-1] > x_time[0]:
-		plt.xlim(x_time[0], x_time[-1])
+		plt.xlim(d_time[0], d_time[-1])
 	plt.ylim([y_min,y_max])
 	plt.grid(True)																			# Показать сетку
 	
@@ -50,7 +59,7 @@ def add_plot(position, data, y_min, y_max, title, units, level1, level2, level3)
 	flag_text_position = False
 	for i in range(len(cell)):
 		if (i == 0) or (cell[i] != cell[i-1]):										# Если изменился номер базовой станции,
-			plt.plot(x_time[i], data[i], 'r.')										#   добавить на график красную точку
+			plt.plot(d_time[i], data[i], 'r.')										#   добавить на график красную точку
 			
 			# Смена позиции текста (номера базовой станции), чтобы не пересекались
 			if cell[i] != '0': flag_text_position = not flag_text_position
@@ -61,30 +70,32 @@ def add_plot(position, data, y_min, y_max, title, units, level1, level2, level3)
 				y_text_postion = min(data)-(y_max-y_min)*0.02
 				v_align = 'top'
 			
-			plt.text(x_time[i], y_text_postion, cell[i], horizontalalignment='left', verticalalignment=v_align) # Добавить на график номер базовой станции
+			plt.text(d_time[i], y_text_postion, cell[i], horizontalalignment='left', verticalalignment=v_align) # Добавить на график номер базовой станции
 
-	plt.plot(x_time, data, linewidth=1.0, color='blue')
-	plt.plot(x_time[-1], data[-1], 'g.')
+	plt.plot(d_time, data, linewidth=1.0, color='blue')
+	plt.plot(d_time[-1], data[-1], 'g.')
 	
 def main_func(index):
 	global tree
-	global x_time, cell, rsrq, rsrp, rssi, sinr
+	global d_time, x_time, cell, rsrq, rsrp, rssi, sinr
 	global pci, mode, ulbandwidth, dlbandwidth, band, ulfrequency, dlfrequency
-	#plt.clf()
 
 	#with open(FILE_XML) as file:
 	#	xml_data = file.readlines()[0].replace(r'\r\n','',-1)
 	xml_data = requests.get(URL_API).text
 	tree = ET.XML(xml_data)
 
+	x_time.append(int(time.time()))
+	d_time.append(dt.datetime.fromtimestamp(x_time[-1]))
 	cell.append(str(get_value('cell_id')))
 	rsrq.append(float(get_value('rsrq')))
 	rsrp.append(int(get_value('rsrp')))
 	rssi.append(int(get_value('rssi')))
 	sinr.append(int(get_value('sinr')))
-	x_time.append(round(float(time.time()-main_time_start),1))
+	
 
 	x_time = x_time[-MAX_MESUAREMENTS:]
+	d_time = d_time[-MAX_MESUAREMENTS:]
 	cell = cell[-MAX_MESUAREMENTS:]
 	rsrq = rsrq[-MAX_MESUAREMENTS:]
 	rsrp = rsrp[-MAX_MESUAREMENTS:]
@@ -92,7 +103,7 @@ def main_func(index):
 	sinr = sinr[-MAX_MESUAREMENTS:]
 	
 	text = (
-		f'{x_time[0]}-{x_time[-1]} {datetime.datetime.now().strftime("%H-%M-%S")} CELL={cell[-1]}'\
+		f'{dt.datetime.now().strftime("%H-%M-%S")} CELL={cell[-1]}'\
 		f' RSRQ={rsrq[-1]} RSRP={rsrp[-1]} RSSI={rssi[-1]} SINR={sinr[-1]}'\
 		f" PCI={get_value('pci')} MODE={get_value('mode')}"\
 		f" ulBandWidth={get_value('ulbandwidth')} dlBandWidth={get_value('dlbandwidth')}"\
@@ -109,7 +120,8 @@ if not os.path.exists(DIR_RESULT):
 	os.makedirs(DIR_RESULT)
 
 main_time_start = time.time()
-x_time = []
+x_time = []				# Время в формате UNIX Time
+d_time = []				# Время datetime
 
 cell = []
 rsrq = []
@@ -118,6 +130,8 @@ rssi = []
 sinr = []
 
 fig, ax = plt.subplots()
+
+
 #fig.canvas.set_window_title('HUAWEI K5161H')
 plt.suptitle(f'HUAWEI K5161H {PLOT_TITLE}')
 plt.tight_layout()
