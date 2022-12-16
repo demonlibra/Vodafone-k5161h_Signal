@@ -94,14 +94,14 @@ def main_func(index):
 	sinr.append(int(get_value('sinr')))
 	
 	if len(x_time) > MAX_MESUAREMENTS:
-		x_time.pop()
-		d_time.pop()
-		cell.pop()
-		rsrq.pop()
-		rsrp.pop()
-		rssi.pop()
-		sinr.pop()
-	
+		x_time.pop(0)
+		d_time.pop(0)
+		cell.pop(0)
+		rsrq.pop(0)
+		rsrp.pop(0)
+		rssi.pop(0)
+		sinr.pop(0)
+
 	text = (
 		f'{dt.datetime.now().strftime("%H-%M-%S")} CELL={cell[-1]}'
 		f' RSRQ={rsrq[-1]} RSRP={rsrp[-1]} RSSI={rssi[-1]} SINR={sinr[-1]}'
