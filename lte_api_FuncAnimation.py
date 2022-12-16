@@ -56,29 +56,29 @@ def add_plot(position, data, y_min, y_max, title, units, level1, level2, level3)
 	plt.grid(True)																			# Показать сетку
 	
 	# Добавляем на график номер базовой станции
-	flag_text_position = False
+	flag_text_top = False
 	for i in range(len(cell)):
 		if (i == 0) or (cell[i] != cell[i-1]):										# Если изменился номер базовой станции,
 			plt.plot(d_time[i], data[i], 'r.')										#   добавить на график красную точку
 			
-			# Смена позиции текста (номера базовой станции), чтобы не пересекались
-			if cell[i] != '0': flag_text_position = not flag_text_position
-			if flag_text_position:
+			if cell[i] != '0':
+				flag_text_top = not flag_text_top									# Смена позиции текста (номера базовой станции), чтобы не пересекались
+
+			if flag_text_top:
 				y_text_postion = max(data)+(y_max-y_min)*0.02
 				v_align = 'bottom'
 			else:
 				y_text_postion = min(data)-(y_max-y_min)*0.02
 				v_align = 'top'
 			
-			plt.text(d_time[i], y_text_postion, cell[i], horizontalalignment='left', verticalalignment=v_align) # Добавить на график номер базовой станции
+			plt.text(d_time[i], y_text_postion, cell[i], 
+						horizontalalignment='left', verticalalignment=v_align)# Добавить на график номер базовой станции
 
 	plt.plot(d_time, data, linewidth=1.0, color='blue')
 	plt.plot(d_time[-1], data[-1], 'g.')
 	
 def main_func(index):
 	global tree
-	global d_time, x_time, cell, rsrq, rsrp, rssi, sinr
-	global pci, mode, ulbandwidth, dlbandwidth, band, ulfrequency, dlfrequency
 
 	#with open(FILE_XML) as file:
 	#	xml_data = file.readlines()[0].replace(r'\r\n','',-1)
@@ -93,21 +93,23 @@ def main_func(index):
 	rssi.append(int(get_value('rssi')))
 	sinr.append(int(get_value('sinr')))
 	
-
-	x_time = x_time[-MAX_MESUAREMENTS:]
-	d_time = d_time[-MAX_MESUAREMENTS:]
-	cell = cell[-MAX_MESUAREMENTS:]
-	rsrq = rsrq[-MAX_MESUAREMENTS:]
-	rsrp = rsrp[-MAX_MESUAREMENTS:]
-	rssi = rssi[-MAX_MESUAREMENTS:]
-	sinr = sinr[-MAX_MESUAREMENTS:]
+	if len(x_time) > MAX_MESUAREMENTS:
+		x_time.pop()
+		d_time.pop()
+		cell.pop()
+		rsrq.pop()
+		rsrp.pop()
+		rssi.pop()
+		sinr.pop()
 	
 	text = (
-		f'{dt.datetime.now().strftime("%H-%M-%S")} CELL={cell[-1]}'\
-		f' RSRQ={rsrq[-1]} RSRP={rsrp[-1]} RSSI={rssi[-1]} SINR={sinr[-1]}'\
-		f" PCI={get_value('pci')} MODE={get_value('mode')}"\
-		f" ulBandWidth={get_value('ulbandwidth')} dlBandWidth={get_value('dlbandwidth')}"\
-		f" BAND={get_value('band')} ULFREQ={get_value('ulfrequency')} DLFREQ={get_value('dlfrequency')}")
+		f'{dt.datetime.now().strftime("%H-%M-%S")} CELL={cell[-1]}'
+		f' RSRQ={rsrq[-1]} RSRP={rsrp[-1]} RSSI={rssi[-1]} SINR={sinr[-1]}'
+		f' PCI={get_value("pci")} MODE={get_value("mode")}'
+		f' ulBandWidth={get_value("ulbandwidth")}'
+		f' dlBandWidth={get_value("dlbandwidth")}'
+		f' BAND={get_value("band")} ULFREQ={get_value("ulfrequency")}'
+		f' DLFREQ={get_value("dlfrequency")}')
 	print(text)
 	
 	# position, data, y_min, y_max, title,                                 units, level1, level2, level3
@@ -116,13 +118,10 @@ def main_func(index):
 	add_plot(3, rssi, -115, -55, 'RSSI - Уровень мощности принимаемого модемом сигнала', 'dBm', -65, -75, -85)
 	add_plot(4, sinr, -22, 30, 'SINR - Cоотношение сигнал/шум', 'dB', 20, 13, 0)
 
-if not os.path.exists(DIR_RESULT):
-	os.makedirs(DIR_RESULT)
+# ----------------------------------------------------------------------
 
-main_time_start = time.time()
 x_time = []				# Время в формате UNIX Time
 d_time = []				# Время datetime
-
 cell = []
 rsrq = []
 rsrp = []
@@ -130,7 +129,6 @@ rssi = []
 sinr = []
 
 fig, ax = plt.subplots()
-
 
 #fig.canvas.set_window_title('HUAWEI K5161H')
 plt.suptitle(f'HUAWEI K5161H {PLOT_TITLE}')
@@ -143,6 +141,8 @@ plt.show()
 #plt.figure(figsize=(7*2, 3.5*2))
 #fig.subplots_adjust(left=0.05, right=0.99, top=0.95, bottom=0.05)
 
-if len(x_time) > 100:
+if len(x_time) > 50:
+	if not os.path.exists(DIR_RESULT):
+		os.makedirs(DIR_RESULT)
 	path_to_save = os.path.join(DIR_RESULT, PLOT_NAME)
 	fig.savefig(path_to_save, dpi=IMG_RESOLUTION, pad_inches=0.2)
