@@ -32,8 +32,12 @@ def get_value(marker):																	# Функция получения зн�
 	string = tree.find(marker).text
 	value = re.search(r'(\-|)(\d+)(\.?)(\d*)', string).group(0)
 	#print('string=', string, ' value=', value)
-	return value
-
+	if (marker != 'cell_id') and (cell[-1] == 0):
+		return None
+	else:
+		if "." in value: return float(value)
+		else: return int(value)
+		
 def add_plot(position, data, y_min, y_max, title, units, level1, level2, level3):# Функция добавления графика
 	axes = plt.subplot(2, 2, position)
 	plt.cla()
@@ -87,11 +91,11 @@ def main_func(index):
 
 	x_time.append(int(time.time()))
 	d_time.append(dt.datetime.fromtimestamp(x_time[-1]))
-	cell.append(str(get_value('cell_id')))
-	rsrq.append(float(get_value('rsrq')))
-	rsrp.append(int(get_value('rsrp')))
-	rssi.append(int(get_value('rssi')))
-	sinr.append(int(get_value('sinr')))
+	cell.append(get_value('cell_id'))
+	rsrq.append(get_value('rsrq'))
+	rsrp.append(get_value('rsrp'))
+	rssi.append(get_value('rssi'))
+	sinr.append(get_value('sinr'))
 	
 	if len(x_time) > MAX_MESUAREMENTS:
 		x_time.pop(0)
@@ -104,18 +108,21 @@ def main_func(index):
 
 	text = (
 		f'{dt.datetime.now().strftime("%H-%M-%S")} CELL={cell[-1]}'
-		f' RSRQ={rsrq[-1]} RSRP={rsrp[-1]} RSSI={rssi[-1]} SINR={sinr[-1]}'
-		f' PCI={get_value("pci")} MODE={get_value("mode")}'
+		f' RSRQ={rsrq[-1]} RSRP={rsrp[-1]}'
+		f' RSSI={rssi[-1]} SINR={sinr[-1]}'
+		f' PCI={get_value("pci")}'
+		f' MODE={get_value("mode")}'
 		f' ulBandWidth={get_value("ulbandwidth")}'
 		f' dlBandWidth={get_value("dlbandwidth")}'
-		f' BAND={get_value("band")} ULFREQ={get_value("ulfrequency")}'
+		f' BAND={get_value("band")}'
+		f' ULFREQ={get_value("ulfrequency")}'
 		f' DLFREQ={get_value("dlfrequency")}')
 	print(text)
 	
 	# position, data, y_min, y_max, title,                                 units, level1, level2, level3
 	add_plot(1, rsrq, -21, 0, 'RSRQ - Качество принятых пилотных сигналов', 'dB', -10, -15, -20)
-	add_plot(2, rsrp, -120, -70, 'RSRP - Уровень принимаемого сигнала с Базовой Станции', 'dBm', -80, -90, -100)
-	add_plot(3, rssi, -115, -55, 'RSSI - Уровень мощности принимаемого модемом сигнала', 'dBm', -65, -75, -85)
+	add_plot(2, rsrp, -120, -70, 'RSRP - Уровень принимаемого сигнала с базовой станции', 'dBm', -80, -90, -100)
+	add_plot(3, rssi, -115, -55, 'RSSI - Уровень мощности принимаемого сигнала', 'dBm', -65, -75, -85)
 	add_plot(4, sinr, -22, 30, 'SINR - Cоотношение сигнал/шум', 'dB', 20, 13, 0)
 
 # ----------------------------------------------------------------------
@@ -129,17 +136,18 @@ rssi = []
 sinr = []
 
 fig, ax = plt.subplots()
-
+#plt.figure(figsize=(7*2, 3.5*2))
 #fig.canvas.set_window_title('HUAWEI K5161H')
-plt.suptitle(f'HUAWEI K5161H {PLOT_TITLE}')
-plt.tight_layout()
+fig.suptitle(f'HUAWEI K5161H {PLOT_TITLE}')
+#plt.tight_layout()
+fig.subplots_adjust(left=0.05, right=0.98, top=0.9, bottom=0.05, wspace=0.13, hspace=0.25)
 
 #ani = FuncAnimation(plt.gcf(), main_func, interval=period_refresh, repeat=False)
-ani = FuncAnimation(fig, main_func, interval=PERIOD_REFRESH, repeat=False)
-plt.show()
+ani = FuncAnimation(
+		fig, main_func,
+		interval=PERIOD_REFRESH, repeat=False)
 
-#plt.figure(figsize=(7*2, 3.5*2))
-#fig.subplots_adjust(left=0.05, right=0.99, top=0.95, bottom=0.05)
+plt.show()
 
 if len(x_time) > 50:
 	if not os.path.exists(DIR_RESULT):
