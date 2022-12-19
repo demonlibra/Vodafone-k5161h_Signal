@@ -20,7 +20,6 @@ FILE_XML = 'signal.xml'
 
 MAX_MESUAREMENTS = 200																	# Максимальное количество измерений на графиках
 PERIOD_REFRESH = 500																		# Период (милисекунд) получения данных. Указать 0 чтобы работать без задержек.
-PLOT_TITLE = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")				# Заголовок окна
 
 DIR_RESULT = 'graphics'																	# Каталог для сохранения изображений
 PLOT_NAME = f'{dt.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.png'		# Имя файла для сохранения изображения
@@ -40,7 +39,7 @@ def get_value(marker):																	# Функция получения зн�
 		
 def add_plot(position, data, y_min, y_max, title, units, level1, level2, level3):# Функция добавления графика
 	axes = plt.subplot(2, 2, position)
-	plt.cla()
+	#plt.cla()
 	
 	xfmt = mdates.DateFormatter('%M:%S')
 	axes.xaxis.set_major_formatter(xfmt)
@@ -106,19 +105,22 @@ def main_func(index):
 		rssi.pop(0)
 		sinr.pop(0)
 
-	text = (
-		f'{dt.datetime.now().strftime("%H-%M-%S")} CELL={cell[-1]}'
+	text_time = dt.datetime.now().strftime("%H-%M-%S")
+	text_1 = (
+		f'CELL={cell[-1]}'
 		f' RSRQ={rsrq[-1]} RSRP={rsrp[-1]}'
-		f' RSSI={rssi[-1]} SINR={sinr[-1]}'
-		f' PCI={get_value("pci")}'
+		f' RSSI={rssi[-1]} SINR={sinr[-1]}')
+	text_2 = (
+		f'PCI={get_value("pci")}'
 		f' MODE={get_value("mode")}'
 		f' ulBandWidth={get_value("ulbandwidth")}'
 		f' dlBandWidth={get_value("dlbandwidth")}'
 		f' BAND={get_value("band")}'
 		f' ULFREQ={get_value("ulfrequency")}'
 		f' DLFREQ={get_value("dlfrequency")}')
-	print(text)
-	
+	print(f'{text_time} {text_1} {text_2}')
+	fig.clf()
+	fig.suptitle(f'HUAWEI K5161H   {plot_title_time}   {text_2}')
 	# position, data, y_min, y_max, title,                                 units, level1, level2, level3
 	add_plot(1, rsrq, -21, 0, 'RSRQ - Качество принятых пилотных сигналов', 'dB', -10, -15, -20)
 	add_plot(2, rsrp, -120, -70, 'RSRP - Уровень принимаемого сигнала с базовой станции', 'dBm', -80, -90, -100)
@@ -126,6 +128,8 @@ def main_func(index):
 	add_plot(4, sinr, -22, 30, 'SINR - Cоотношение сигнал/шум', 'dB', 20, 13, 0)
 
 # ----------------------------------------------------------------------
+
+plot_title_time = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")				# Заголовок окна
 
 x_time = []				# Время в формате UNIX Time
 d_time = []				# Время datetime
@@ -138,7 +142,7 @@ sinr = []
 fig, ax = plt.subplots()
 #plt.figure(figsize=(7*2, 3.5*2))
 #fig.canvas.set_window_title('HUAWEI K5161H')
-fig.suptitle(f'HUAWEI K5161H {PLOT_TITLE}')
+
 #plt.tight_layout()
 fig.subplots_adjust(left=0.05, right=0.98, top=0.9, bottom=0.05, wspace=0.13, hspace=0.25)
 
