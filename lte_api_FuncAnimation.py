@@ -144,8 +144,11 @@ def main_func(index):
 	add_plot(4, sinr, -22, 30, 'SINR - Cоотношение сигнал/шум', 'dB', 20, 13, 0)
 	
 	if (len(cell) == 1) or ((len(cell) > 1) and (cell[-1] != cell[-2])):
-		send_notify('Смена базовой станции', str(cell[-1]))					# Отправить уведомление
-
+		if 'linux' in os.uname().sysname.casefold():
+			try:
+				send_notify('Смена базовой станции', str(cell[-1]))			# Отправить уведомление
+			except:
+				pass
 # ----------------------------------------------------------------------
 
 plot_title_time = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")			# Заголовок окна
