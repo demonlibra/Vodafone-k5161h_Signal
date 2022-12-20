@@ -67,17 +67,16 @@ def add_plot(position, data, y_min, y_max, title, units, level1, level2, level3)
 	# Добавляем на график номер базовой станции
 	flag_text_top = False
 	for i in range(len(cell)):
-		if (i == 0) or (cell[i] != cell[i-1] != 0):								# Если изменился номер базовой станции,
+		if (cell[i] != 0) and ((i == 0) or (cell[i] != cell[i-1])):			# Если изменился номер базовой станции,
 			plt.plot(d_time[i], data[i], 'r.')										#   добавить на график красную точку
 			
-			if cell[i] != 0:
-				flag_text_top = not flag_text_top									# Смена позиции текста (номера базовой станции), чтобы не пересекались
+			flag_text_top = not flag_text_top										# Смена позиции текста (номера базовой станции), чтобы не пересекались
 
 			if flag_text_top:
-				y_text_position = max(data)+(y_max-y_min)*0.02
+				y_text_position = max(list(filter(None, data))) + (y_max-y_min)*0.02	# Для функции max необходимо исключить None из списка
 				v_align = 'bottom'
 			else:
-				y_text_position = min(data)-(y_max-y_min)*0.02
+				y_text_position = min(list(filter(None, data))) - (y_max-y_min)*0.02
 				v_align = 'top'
 			
 			plt.text(d_time[i], y_text_position, cell[i], 
@@ -136,7 +135,7 @@ def main_func(index):
 		f' DLFREQ={get_value("dlfrequency")}')
 	print(f'{text_time} {text_1} {text_2}')
 	fig.clf()
-	fig.suptitle(f'HUAWEI K5161H   {plot_title_time}   {text_2}')
+	fig.suptitle(f'HUAWEI K5161H     {plot_title_time}     {text_2}')
 
 	# position, data, y_min, y_max, title,                                 units, level1, level2, level3
 	add_plot(1, rsrq, -21, 0, 'RSRQ - Качество принятых пилотных сигналов', 'dB', -10, -15, -20)
