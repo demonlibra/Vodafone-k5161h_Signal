@@ -12,6 +12,7 @@ import re
 import requests
 import time
 import xml.etree.ElementTree as ET
+import dbus
 
 # ---------------------------- Параметры -------------------------------
 
@@ -27,6 +28,11 @@ IMG_RESOLUTION = 150																		# Разрешение изображен�
 
 # ------------------------------ Функции -------------------------------
 
+def send_notify(title, message):
+	item = "org.freedesktop.Notifications"
+	notify = dbus.Interface(dbus.SessionBus().get_object(item, "/"+item.replace(".", "/")), item)
+	notify.Notify("", 0, "", title, message, [], {"urgency": 1}, 3000)
+    
 def get_value(marker):																	# Функция получения значений по маркеру
 	string = tree.find(marker).text
 	value = re.search(r'(\-|)(\d+)(\.?)(\d*)', string).group(0)
@@ -61,25 +67,35 @@ def add_plot(position, data, y_min, y_max, title, units, level1, level2, level3)
 	# Добавляем на график номер базовой станции
 	flag_text_top = False
 	for i in range(len(cell)):
-		if (i == 0) or (cell[i] != cell[i-1]):										# Если изменился номер базовой станции,
+		if (i == 0) or (cell[i] != cell[i-1] != 0):								# Если изменился номер базовой станции,
 			plt.plot(d_time[i], data[i], 'r.')										#   добавить на график красную точку
 			
-			if cell[i] != '0':
+			if cell[i] != 0:
 				flag_text_top = not flag_text_top									# Смена позиции текста (номера базовой станции), чтобы не пересекались
 
 			if flag_text_top:
-				y_text_postion = max(data)+(y_max-y_min)*0.02
+				y_text_position = max(data)+(y_max-y_min)*0.02
 				v_align = 'bottom'
 			else:
-				y_text_postion = min(data)-(y_max-y_min)*0.02
+				y_text_position = min(data)-(y_max-y_min)*0.02
 				v_align = 'top'
 			
-			plt.text(d_time[i], y_text_postion, cell[i], 
+			plt.text(d_time[i], y_text_position, cell[i], 
 						horizontalalignment='left', verticalalignment=v_align)# Добавить на график номер базовой станции
 
 	plt.plot(d_time, data, linewidth=1.0, color='blue')
-	plt.plot(d_time[-1], data[-1], 'g.')
-	
+
+	if cell[-1] != 0:
+		plt.plot(d_time[-1], data[-1], 'g.')
+
+		# Текущее значение справа от графика
+		if data[-1] > level1: facecolor = 'green'
+		elif data[-1] > level2: facecolor = 'yellow'
+		elif data[-1] > level3: facecolor = 'orange'
+		else: facecolor = 'red'
+		bbox_props = dict(boxstyle='round', fc=facecolor, ec='black')
+		axes.annotate(str(data[-1]), (d_time[-1], data[-1]), xytext=(10,0), textcoords='offset pixels', bbox=bbox_props)
+
 def main_func(index):
 	global tree
 
@@ -121,15 +137,19 @@ def main_func(index):
 	print(f'{text_time} {text_1} {text_2}')
 	fig.clf()
 	fig.suptitle(f'HUAWEI K5161H   {plot_title_time}   {text_2}')
+
 	# position, data, y_min, y_max, title,                                 units, level1, level2, level3
 	add_plot(1, rsrq, -21, 0, 'RSRQ - Качество принятых пилотных сигналов', 'dB', -10, -15, -20)
 	add_plot(2, rsrp, -120, -70, 'RSRP - Уровень принимаемого сигнала с базовой станции', 'dBm', -80, -90, -100)
 	add_plot(3, rssi, -115, -55, 'RSSI - Уровень мощности принимаемого сигнала', 'dBm', -65, -75, -85)
 	add_plot(4, sinr, -22, 30, 'SINR - Cоотношение сигнал/шум', 'dB', 20, 13, 0)
+	
+	if (len(cell) == 1) or ((len(cell) > 1) and (cell[-1] != cell[-2])):
+		send_notify('Смена базовой станции', str(cell[-1]))					# Отправить уведомление
 
 # ----------------------------------------------------------------------
 
-plot_title_time = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")				# Заголовок окна
+plot_title_time = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")			# Заголовок окна
 
 x_time = []				# Время в формате UNIX Time
 d_time = []				# Время datetime
@@ -144,7 +164,7 @@ fig, ax = plt.subplots()
 #fig.canvas.set_window_title('HUAWEI K5161H')
 
 #plt.tight_layout()
-fig.subplots_adjust(left=0.05, right=0.98, top=0.9, bottom=0.05, wspace=0.13, hspace=0.25)
+fig.subplots_adjust(left=0.05, right=0.96, top=0.9, bottom=0.05, wspace=0.18, hspace=0.25)
 
 #ani = FuncAnimation(plt.gcf(), main_func, interval=period_refresh, repeat=False)
 ani = FuncAnimation(
