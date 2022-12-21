@@ -45,6 +45,14 @@ def get_value(marker):
 		if "." in value: return float(value)
 		else: return int(value)
 
+# Максимальное значение в списке. # Для max необходимо исключить None из списка
+def get_max(data):
+	return max([i for i in data if i!=None])
+
+# Максимальное значение в списке. # Для min необходимо исключить None из списка
+def get_min(data):
+	return min([i for i in data if i!=None])
+	
 # Добавление графика
 def add_plot(position, data, y_min, y_max, title, units, level1, level2, level3):
 	axes = plt.subplot(2, 2, position)
@@ -66,7 +74,7 @@ def add_plot(position, data, y_min, y_max, title, units, level1, level2, level3)
 		plt.xlim(d_time[0], d_time[-1])
 	plt.ylim([y_min,y_max])
 	plt.grid(True)																			# Показать сетку
-	
+
 	# Добавляем на график номер базовой станции
 	flag_text_top = False
 	for i in range(len(cell)):
@@ -76,10 +84,10 @@ def add_plot(position, data, y_min, y_max, title, units, level1, level2, level3)
 			flag_text_top = not flag_text_top										# Смена позиции текста (номера базовой станции), чтобы не пересекались
 
 			if flag_text_top:
-				y_text_position = max(list(filter(None, data))) + (y_max-y_min)*0.02	# Для функции max необходимо исключить None из списка
+				y_text_position = get_max(data) + (y_max-y_min)*0.02
 				v_align = 'bottom'
 			else:
-				y_text_position = min(list(filter(None, data))) - (y_max-y_min)*0.02
+				y_text_position = get_min(data) - (y_max-y_min)*0.02
 				v_align = 'top'
 			
 			plt.text(d_time[i], y_text_position, cell[i], 
@@ -105,7 +113,7 @@ def main_func(index):
 	#with open(FILE_XML) as file:
 	#	xml_data = file.readlines()[0].replace(r'\r\n','',-1)
 	try:
-		xml_data = requests.get(URL_API, timeout=10).text
+		xml_data = requests.get(URL_API, timeout=5).text
 	except:
 		print('Не получены данные от модема')
 	else:
@@ -113,6 +121,7 @@ def main_func(index):
 
 		x_time.append(int(time.time()))
 		d_time.append(dt.datetime.fromtimestamp(x_time[-1]))
+
 		cell.append(get_value('cell_id'))
 		rsrq.append(get_value('rsrq'))
 		rsrp.append(get_value('rsrp'))
