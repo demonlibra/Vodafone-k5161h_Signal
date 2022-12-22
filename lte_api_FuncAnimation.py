@@ -37,13 +37,19 @@ def send_notify(title, message):
 # Извлечение параметра по метке
 def get_value(marker):
 	string = tree.find(marker).text
-	value = re.search(r'(\-|)(\d+)(\.?)(\d*)', string).group(0)
-	#print('string=', string, ' value=', value)
-	if (marker != 'cell_id') and (cell[-1] == 0):
+	try:
+		value = re.search(r'(\-?)(\d+)(\.?\d*)', string).group(0)
+		#print('string=', string, ' value=', value)
+	except:
+		print(xml_data)
 		return None
-	else:
-		if "." in value: return float(value)
-		else: return int(value)
+	else:	
+		if (marker != 'cell_id') and (cell[-1] == 0):
+			return None
+		elif "." in value:
+			return float(value)
+		else:
+			return int(value)
 
 # Максимальное значение в списке. # Для max необходимо исключить None из списка
 def get_max(data):
