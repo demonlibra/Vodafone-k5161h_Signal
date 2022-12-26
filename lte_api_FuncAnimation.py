@@ -202,7 +202,14 @@ ani = FuncAnimation(
 plt.show()
 
 if len(x_time) > 50:
-	if not os.path.exists(DIR_RESULT):
-		os.makedirs(DIR_RESULT)
-	path_to_save = os.path.join(DIR_RESULT, PLOT_NAME)
-	fig.savefig(path_to_save, dpi=IMG_RESOLUTION, pad_inches=0.2)
+	if DIR_RESULT.startswith('/'):
+		full_path_dir = os.path.join(DIR_RESULT)
+	else:
+		path_to_script = os.path.dirname(__file__)
+		full_path_dir = os.path.join(path_to_script, DIR_RESULT)
+		
+	if not os.path.exists(full_path_dir):
+		os.makedirs(full_path_dir)
+		
+	full_path_to_save = os.path.join(full_path_dir, PLOT_NAME)
+	fig.savefig(full_path_to_save, dpi=IMG_RESOLUTION, pad_inches=0.2)
