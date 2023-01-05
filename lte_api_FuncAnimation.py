@@ -60,7 +60,7 @@ def get_min(data):
 	return min([i for i in data if i!=None])
 	
 # Добавление графика
-def add_plot(position, data, y_min, y_max, title, units, level1, level2, level3):
+def add_plot(position, data, y_min, y_max, title, level1, level2, level3):
 	axes = plt.subplot(2, 2, position)
 	#plt.cla()
 	
@@ -74,7 +74,7 @@ def add_plot(position, data, y_min, y_max, title, units, level1, level2, level3)
 	plt.axhline(level1, color='yellow')
 	plt.axhline(level2, color='orange')
 	plt.axhline(level3, color='red')
-	plt.title(title + ', ' + units)
+	plt.title(title)
 
 	if x_time[-1] > x_time[0]:
 		plt.xlim(d_time[0], d_time[-1])
@@ -164,34 +164,29 @@ def main_func(index):
 
 		fig.clf()
 		window_width = fig.get_figwidth()
-		window_height = fig.get_figheight()
 
 		if window_width > 11:
 			fig.suptitle(f'HUAWEI K5161H{" "*5}{plot_title_time}{" "*5}{text_2}')
-		else:
-			fig.suptitle(f'HUAWEI K5161H{" "*5}{plot_title_time}')
-
-		#print(f'{window_width}x{window_height}')
-		if window_width > 11:
-			title_rsrq = 'RSRQ - Качество принятых пилотных сигналов'
-			title_rsrp = 'RSRP - Уровень принимаемого сигнала с базовой станции'
-			title_rssi = 'RSSI - Уровень мощности принимаемого сигнала'
-			title_sinr = 'SINR - Cоотношение сигнал/шум'
+			title_rsrq = 'RSRQ - Качество принятых пилотных сигналов, dB'
+			title_rsrp = 'RSRP - Уровень принимаемого сигнала с базовой станции, dBm'
+			title_rssi = 'RSSI - Уровень мощности принимаемого сигнала, dBm'
+			title_sinr = 'SINR - Cоотношение сигнал/шум, dB'
 			min_ticks = 5
 			max_ticks = 10
 		else:
-			title_rsrq = 'RSRQ'
-			title_rsrp = 'RSRP'
-			title_rssi = 'RSSI'
-			title_sinr = 'SINR'
+			fig.suptitle(f'HUAWEI K5161H{" "*5}{plot_title_time}')
+			title_rsrq = f'RSRQ = {rsrq[-1]} dB'
+			title_rsrp = f'RSRP = {rsrp[-1]} dBm'
+			title_rssi = f'RSSI = {rssi[-1]} dBm'
+			title_sinr = f'SINR = {sinr[-1]} dB'
 			min_ticks = 3
 			max_ticks = 5
 
-		# position, data, y_min, y_max, title,                                 units, level1, level2, level3
-		add_plot(1, rsrq, -21, 0, title_rsrq, 'dB', -10, -15, -20)
-		add_plot(2, rsrp, -120, -70, title_rsrp, 'dBm', -80, -90, -100)
-		add_plot(3, rssi, -115, -55, title_rssi, 'dBm', -65, -75, -85)
-		add_plot(4, sinr, -22, 30, title_sinr, 'dB', 20, 13, 0)
+		# position, data, y_min, y_max, title, level1, level2, level3
+		add_plot(1, rsrq, -21, 0, title_rsrq, -10, -15, -20)
+		add_plot(2, rsrp, -120, -70, title_rsrp, -80, -90, -100)
+		add_plot(3, rssi, -115, -55, title_rssi, -65, -75, -85)
+		add_plot(4, sinr, -22, 30, title_sinr, 20, 13, 0)
 
 		if (len(x_time) > 1) and ((x_time[-1]-x_time[-2]) > 3):
 			print(f'Модем не отвечал {x_time[-1]-x_time[-2]} сек')
