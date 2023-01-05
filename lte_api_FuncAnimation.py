@@ -104,19 +104,21 @@ def add_plot(position, data, y_min, y_max, title, units, level1, level2, level3)
 	if cell[-1] != 0:
 		plt.plot(d_time[-1], data[-1], 'g.')
 
-		# Текущее значение справа от графика
-		if data[-1] > level1: facecolor = 'green'
-		elif data[-1] > level2: facecolor = 'yellow'
-		elif data[-1] > level3: facecolor = 'orange'
-		else: facecolor = 'red'
-		bbox_props = dict(boxstyle='round', fc=facecolor, ec='black')
-		axes.annotate(str(data[-1]), (d_time[-1], data[-1]), xytext=(10,0), textcoords='offset pixels', bbox=bbox_props)
+		if window_width > 12:
+			# Текущее значение справа от графика
+			if data[-1] > level1: facecolor = 'green'
+			elif data[-1] > level2: facecolor = 'yellow'
+			elif data[-1] > level3: facecolor = 'orange'
+			else: facecolor = 'red'
+			bbox_props = dict(boxstyle='round', fc=facecolor, ec='black')
+			axes.annotate(str(data[-1]), (d_time[-1], data[-1]), xytext=(10,0), textcoords='offset pixels', bbox=bbox_props)
 
 # Основная функция выполняемая циклически
 def main_func(index):
 	global tree
 	global xml_data
 	global min_ticks, max_ticks
+	global window_width
 
 	#with open(FILE_XML) as file:
 	#	xml_data = file.readlines()[0].replace(r'\r\n','',-1)
@@ -159,11 +161,16 @@ def main_func(index):
 			f' ULFREQ={get_value("ulfrequency")}'
 			f' DLFREQ={get_value("dlfrequency")}')
 		print(f'{text_time} {text_1} {text_2}')
-		fig.clf()
-		fig.suptitle(f'HUAWEI K5161H{" "*5}{plot_title_time}{" "*5}{text_2}')
 
+		fig.clf()
 		window_width = fig.get_figwidth()
 		window_height = fig.get_figheight()
+
+		if window_width > 11:
+			fig.suptitle(f'HUAWEI K5161H{" "*5}{plot_title_time}{" "*5}{text_2}')
+		else:
+			fig.suptitle(f'HUAWEI K5161H{" "*5}{plot_title_time}')
+
 		#print(f'{window_width}x{window_height}')
 		if window_width > 11:
 			title_rsrq = 'RSRQ - Качество принятых пилотных сигналов'
