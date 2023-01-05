@@ -41,7 +41,7 @@ def get_value(marker):
 		value = re.search(r'(\-?)(\d+)(\.?\d*)', string).group(0)
 		#print('string=', string, ' value=', value)
 	except:
-		print(xml_data)
+		#print(xml_data)
 		return None
 	else:	
 		if (marker != 'cell_id') and (cell[-1] == 0):
@@ -67,7 +67,7 @@ def add_plot(position, data, y_min, y_max, title, units, level1, level2, level3)
 	xfmt = mdates.DateFormatter('%M:%S')
 	axes.xaxis.set_major_formatter(xfmt)
 
-	locator = mdates.AutoDateLocator(minticks=5, maxticks=10)
+	locator = mdates.AutoDateLocator(minticks=min_ticks, maxticks=max_ticks)
 	#locator = mdates.SecondLocator(bysecond=[0,30])
 	axes.xaxis.set_major_locator(locator)
 	
@@ -115,6 +115,8 @@ def add_plot(position, data, y_min, y_max, title, units, level1, level2, level3)
 # Основная функция выполняемая циклически
 def main_func(index):
 	global tree
+	global xml_data
+	global min_ticks, max_ticks
 
 	#with open(FILE_XML) as file:
 	#	xml_data = file.readlines()[0].replace(r'\r\n','',-1)
@@ -160,12 +162,30 @@ def main_func(index):
 		fig.clf()
 		fig.suptitle(f'HUAWEI K5161H{" "*5}{plot_title_time}{" "*5}{text_2}')
 
+		window_width = fig.get_figwidth()
+		window_height = fig.get_figheight()
+		#print(f'{window_width}x{window_height}')
+		if window_width > 11:
+			title_rsrq = 'RSRQ - Качество принятых пилотных сигналов'
+			title_rsrp = 'RSRP - Уровень принимаемого сигнала с базовой станции'
+			title_rssi = 'RSSI - Уровень мощности принимаемого сигнала'
+			title_sinr = 'SINR - Cоотношение сигнал/шум'
+			min_ticks = 5
+			max_ticks = 10
+		else:
+			title_rsrq = 'RSRQ'
+			title_rsrp = 'RSRP'
+			title_rssi = 'RSSI'
+			title_sinr = 'SINR'
+			min_ticks = 3
+			max_ticks = 5
+
 		# position, data, y_min, y_max, title,                                 units, level1, level2, level3
-		add_plot(1, rsrq, -21, 0, 'RSRQ - Качество принятых пилотных сигналов', 'dB', -10, -15, -20)
-		add_plot(2, rsrp, -120, -70, 'RSRP - Уровень принимаемого сигнала с базовой станции', 'dBm', -80, -90, -100)
-		add_plot(3, rssi, -115, -55, 'RSSI - Уровень мощности принимаемого сигнала', 'dBm', -65, -75, -85)
-		add_plot(4, sinr, -22, 30, 'SINR - Cоотношение сигнал/шум', 'dB', 20, 13, 0)
-		
+		add_plot(1, rsrq, -21, 0, title_rsrq, 'dB', -10, -15, -20)
+		add_plot(2, rsrp, -120, -70, title_rsrp, 'dBm', -80, -90, -100)
+		add_plot(3, rssi, -115, -55, title_rssi, 'dBm', -65, -75, -85)
+		add_plot(4, sinr, -22, 30, title_sinr, 'dB', 20, 13, 0)
+
 		if (len(x_time) > 1) and ((x_time[-1]-x_time[-2]) > 3):
 			print(f'Модем не отвечал {x_time[-1]-x_time[-2]} сек')
 			
@@ -175,6 +195,7 @@ def main_func(index):
 					send_notify('Смена базовой станции', str(cell[-1]))			# Отправить уведомление
 				except:
 					pass
+
 # ----------------------------------------------------------------------
 
 plot_title_time = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")			# Время запуска сценария для заголовка окна
