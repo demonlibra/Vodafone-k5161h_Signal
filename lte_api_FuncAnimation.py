@@ -19,7 +19,7 @@ import xml.etree.ElementTree as ET
 URL_API = 'http://192.168.9.1/api/device/signal'								# Адрес страницы с информацией о сигнале
 FILE_XML = 'signal.xml'
 
-TIME_LIMIT = 300																			# Отображаемый период измерений 
+TIME_LIMIT = 300																			# Отображаемый период измерений (секунд)
 PERIOD_REFRESH = 500																		# Задержка (милисекунд) обновления данных. Указать 0 чтобы работать без задержек.
 
 DIR_RESULT = 'graphics'																	# Каталог для сохранения изображений
@@ -138,14 +138,17 @@ def main_func(index):
 		rssi.append(get_value('rssi'))
 		sinr.append(get_value('sinr'))
 		
-		if (x_time[-1]-x_time[0]) > TIME_LIMIT:
-			x_time.pop(0)
-			d_time.pop(0)
-			cell.pop(0)
-			rsrq.pop(0)
-			rsrp.pop(0)
-			rssi.pop(0)
-			sinr.pop(0)
+		while True:
+			if (x_time[-1]-x_time[0]) > TIME_LIMIT:
+				x_time.pop(0)
+				d_time.pop(0)
+				cell.pop(0)
+				rsrq.pop(0)
+				rsrp.pop(0)
+				rssi.pop(0)
+				sinr.pop(0)
+			else:
+				break
 
 		text_time = dt.datetime.now().strftime("%H-%M-%S")
 		text_1 = (
