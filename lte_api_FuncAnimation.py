@@ -20,7 +20,7 @@ URL_API = 'http://192.168.9.1/api/device/signal'								# Адрес стран�
 FILE_XML = 'signal.xml'
 
 TIME_LIMIT = 300																			# Отображаемый период измерений (секунд)
-PERIOD_REFRESH = 500																		# Задержка (милисекунд) обновления данных. Указать 0 чтобы работать без задержек.
+PERIOD_REFRESH = 5000																	# Задержка (милисекунд) обновления данных. Указать 0 чтобы работать без задержек.
 
 DIR_RESULT = 'graphics'																	# Каталог для сохранения изображений
 PLOT_NAME = f'{dt.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.png'		# Имя файла для сохранения изображения
@@ -71,9 +71,9 @@ def add_plot(position, data, y_min, y_max, title, level1, level2, level3):
 	#locator = mdates.SecondLocator(bysecond=[0,30])
 	axes.xaxis.set_major_locator(locator)
 	
-	plt.axhline(level1, color='yellow')
-	plt.axhline(level2, color='orange')
-	plt.axhline(level3, color='red')
+	plt.axhline(level1, color='yellow', linewidth=3.0)
+	plt.axhline(level2, color='orange', linewidth=3.0)
+	plt.axhline(level3, color='red', linewidth=3.0)
 	plt.title(title)
 
 	if x_time[-1] > x_time[0]:
@@ -175,7 +175,7 @@ def main_func(index):
 			title_rssi = 'RSSI - Уровень мощности принимаемого сигнала, dBm'
 			title_sinr = 'SINR - Cоотношение сигнал/шум, dB'
 			min_ticks = 5
-			max_ticks = 10
+			max_ticks = 11
 		else:
 			fig.suptitle(f'HUAWEI K5161H{" "*5}{plot_title_time}')
 			title_rsrq = f'RSRQ = {rsrq[-1]} dB'
